@@ -1,7 +1,7 @@
-from pymongo import mongo_client
+from pymongo import MongoClient
 
-client = mongo_client('localhost', 27017)
+client = MongoClient('localhost', 27017)
 
-current_db = client['pyloungedb']
+db = client.task
 
-collection_notif = current_db['notifications']
+notification = db.notification

@@ -3,6 +3,7 @@ from pydantic_models.models import (
     PostRequest,
     PostResponse
 )
+# from tables import notification
 
 
 app = FastAPI()
@@ -11,8 +12,8 @@ app = FastAPI()
 @app.post(
     '/create',
     status_code=201,
-    tags=['notification'],
-    response_class=PostResponse
+    response_class=PostResponse,
+    tags=['notification']
 )
 async def create_notif(body: PostRequest):
     print(body)
