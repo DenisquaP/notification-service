@@ -1,7 +1,8 @@
-from pymongo import MongoClient
+# from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 
-client = MongoClient('localhost', 27017)
-
-db = client.task
-
-notification = db.notification
+client = AsyncIOMotorClient(
+    "mongodb+srv://DenisPis:CosmoWins1@notification.e67b7fu.mongodb.net/?retryWrites=true&w=majority"  # noqa 501
+)
+db = client["notification"]
+notifications = db["notifications"]
