@@ -6,8 +6,14 @@ from pydantic_models.models import (
 )
 from uuid import uuid4
 import time
+from dotenv import load_dotenv
+import os
+
 from tables import notifications
 from send_email import send_email
+
+load_dotenv()
+EMAIL = os.getenv("EMAIL")
 
 
 app = FastAPI(
@@ -23,11 +29,18 @@ app = FastAPI(
 )
 async def create_notif(body: PostRequest) -> Response:
     body = body.dict()
+    print(body)
     if body['key'] == 'registration':
-        await send_email()
+        await send_email(
+            EMAIL,
+            "some message"
+        )
         return {"success": True}
     elif body['key'] == "new_login":
-        await send_email()
+        await send_email(
+            EMAIL,
+            "some message"
+        )
     notif = {
         "id": str(uuid4()),
         "timestamp": time.time(),

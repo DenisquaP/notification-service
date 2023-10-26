@@ -11,6 +11,7 @@ SMTP_PORT = os.getenv("SMTP_PORT")
 EMAIL = os.getenv("EMAIL")
 SMTP_NAME = os.getenv("SMTP_NAME")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+SMTP_LOGIN = os.getenv("SMTP_LOGIN")
 
 
 def send_email(
@@ -18,15 +19,15 @@ def send_email(
     message: str = ""
 ):
     smtp_server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT)
-    smtp_server.login(EMAIL, SMTP_PASSWORD)
+    smtp_server.login(SMTP_LOGIN, SMTP_PASSWORD)
 
     msg = MIMEMultipart()
-    msg["From"] = EMAIL
+    msg["From"] = SMTP_LOGIN
     msg["To"] = to_email
     msg["Subject"] = SMTP_NAME
 
     text = message
     msg.attach(MIMEText(text, "plain"))
 
-    smtp_server.sendmail(EMAIL, to_email, msg.as_string())
+    smtp_server.sendmail(SMTP_LOGIN, to_email, msg.as_string())
     smtp_server.quit()
