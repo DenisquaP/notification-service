@@ -27,7 +27,7 @@ def send_email(
     msg["Subject"] = SMTP_NAME
 
     text = message
-    msg.attach(MIMEText(text, "plain"))
+    msg.attach(MIMEText(text))
 
     smtp_server.sendmail(SMTP_LOGIN, to_email, msg.as_string())
     smtp_server.quit()

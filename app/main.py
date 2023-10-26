@@ -31,15 +31,15 @@ async def create_notif(body: PostRequest) -> Response:
     body = body.dict()
     print(body)
     if body['key'] == 'registration':
-        await send_email(
+        send_email(
             EMAIL,
-            "some message"
+            f"Test message to {EMAIL}"
         )
         return {"success": True}
     elif body['key'] == "new_login":
-        await send_email(
+        send_email(
             EMAIL,
-            "some message"
+            f"Test message to {EMAIL}"
         )
     notif = {
         "id": str(uuid4()),
@@ -47,7 +47,7 @@ async def create_notif(body: PostRequest) -> Response:
         "is_new": True,
         "user_id": str(body['user_id']),
         "key": body['key'],
-        "target_id": str(body['target_id']),
+        "target_id": str(body.get('target_id')),
         "data": body['data']
     }
     await notifications.insert_one(notif)
