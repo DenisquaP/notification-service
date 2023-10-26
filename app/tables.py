@@ -1,8 +1,12 @@
-# from pymongo import MongoClient
 from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 
 client = AsyncIOMotorClient(
-    "mongodb+srv://DenisPis:CosmoWins1@notification.e67b7fu.mongodb.net/?retryWrites=true&w=majority"  # noqa 501
+    os.getenv("DB_URL")
 )
 db = client["notification"]
 notifications = db["notifications"]

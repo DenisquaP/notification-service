@@ -1,5 +1,4 @@
 from pydantic import BaseModel, UUID4
-# from typing import Any
 
 
 class PostRequest(BaseModel):
@@ -9,5 +8,10 @@ class PostRequest(BaseModel):
     data: dict | None = None
 
 
-class PostResponse(BaseModel):
+class Response(BaseModel):
     success: bool
+
+
+class ReadRequest(BaseModel):
+    user_id: UUID4
+    notification_id: str

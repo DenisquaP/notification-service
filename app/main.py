@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from pydantic_models.models import (
     PostRequest,
-    PostResponse
+    Response,
+    ReadRequest
 )
 from uuid import uuid4
 import time
 from tables import notifications
+from send_email import send_email
 
 
 app = FastAPI(
@@ -13,21 +15,19 @@ app = FastAPI(
 )
 
 
-async def send_email():
-    pass
-
-
 @app.post(
     '/create',
     status_code=201,
     tags=['notification'],
-    response_model=PostResponse
+    response_model=Response
 )
-async def create_notif(body: PostRequest):
+async def create_notif(body: PostRequest) -> Response:
     body = body.dict()
     if body['key'] == 'registration':
         await send_email()
         return {"success": True}
+    elif body['key'] == "new_login":
+        await send_email()
     notif = {
         "id": str(uuid4()),
         "timestamp": time.time(),
@@ -47,7 +47,7 @@ async def create_notif(body: PostRequest):
     status_code=200,
     tags=['notification']
 )
-async def get_listing(user_id: str, skip: int = 0, limit: int = 10):
+async def get_listing(user_id: str, skip: int = 0, limit: int = 10) -> dict:
     cursor = notifications.find({"user_id": user_id})
     new = 0
     all = 0
@@ -68,7 +68,21 @@ async def get_listing(user_id: str, skip: int = 0, limit: int = 10):
                 "skip": skip,
                 "limit": limit,
             },
-            "list": all_required
+            "list": all_required[skip:limit]
         }
     }
     return result
+
+
+@app.post(
+    '/read',
+    response_model=Response,
+    tags=['notification']
+)
+async def read_message(body: ReadRequest):
+    body = body.dict()
+    await notifications.update_one(
+        {"user_id": str(body["user_id"]), "id": str(body["notification_id"])},  # noqa 501
+        {"$set": {"is_new": False}}
+    )
+    return {"success": True}
