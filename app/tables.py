@@ -53,10 +53,12 @@ class MongoManager:
         pass
 
     async def create_user(self, user_id) -> None:
-        if user_id
-        await self.users.insert_one({
-            "user_id": str(user_id)
-        })
+        if not await self.users.find_one({"user_id": user_id}):
+            await self.users.insert_one({
+                "user_id": user_id
+            })
+        else:
+            raise ValueError("User is already exists")
 
     @classmethod
     async def _get_db(cls, url):

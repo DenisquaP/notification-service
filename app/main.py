@@ -35,12 +35,15 @@ async def create_notif(body: PostRequest) -> Response:
     body = body.dict()
     print(body)
     if body['key'] == 'registration':
-        await mongo.create_user(body['user_id'])
-        # send_email(
-        #     EMAIL,
-        #     f"Test message to {EMAIL}"
-        # )
-        return {"success": True}
+        try:
+            await mongo.create_user(str(body['user_id']))
+            # send_email(
+            #     EMAIL,
+            #     f"Test message to {EMAIL}"
+            # )
+            return {"success": True}
+        except ValueError as e:
+            return {"success": True, 'Error': e}
     elif body['key'] == "new_login":
         send_email(
             EMAIL,
