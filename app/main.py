@@ -10,15 +10,19 @@ from dotenv import load_dotenv
 import os
 
 from tables import notifications
+from tables import MongoManager
 from send_email import send_email
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
+DB_URL = os.getenv("DB_URL")
 
 
 app = FastAPI(
     title="Notifications App"
 )
+
+mongo = MongoManager(DB_URL, 'notification')
 
 
 @app.post(
@@ -31,10 +35,11 @@ async def create_notif(body: PostRequest) -> Response:
     body = body.dict()
     print(body)
     if body['key'] == 'registration':
-        send_email(
-            EMAIL,
-            f"Test message to {EMAIL}"
-        )
+        await mongo.create_user(body['user_id'])
+        # send_email(
+        #     EMAIL,
+        #     f"Test message to {EMAIL}"
+        # )
         return {"success": True}
     elif body['key'] == "new_login":
         send_email(
@@ -61,29 +66,7 @@ async def create_notif(body: PostRequest) -> Response:
     tags=['notification']
 )
 async def get_listing(user_id: str, skip: int = 0, limit: int = 10) -> dict:
-    cursor = notifications.find({"user_id": user_id})
-    new = 0
-    all = 0
-    all_required = []
-    for entry in await cursor.to_list(length=100):
-        entry.pop('_id')
-        if entry['is_new']:
-            new += 1
-        all += 1
-        all_required.append(entry)
-    result = {
-        "success": True,
-        "data": {
-            "elements": all,
-            "new": new,
-            "request": {
-                "user_id": user_id,
-                "skip": skip,
-                "limit": limit,
-            },
-            "list": all_required[skip:limit]
-        }
-    }
+    result = await mongo.get_notifications(user_id, skip, limit)
     return result
 
 
