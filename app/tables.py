@@ -67,10 +67,10 @@ class MongoManager:
 
         Args:
             user_id (str): User`s uuid by str
-            key (str): Key of operation 
+            key (str): Key of operation
             target_id (str): Target`s uuid by str
             data (dict): dict of data
-        """        
+        """
         notif = {
             "id": str(uuid4()),
             "timestamp": time.time(),
