@@ -10,7 +10,6 @@ class MongoManager:
         )
         self.db = self.client[db]
         self.notifications = self.db["notifications"]
-        self.users = self.db['users']
 
     async def get_notifications(
             self, user_id: str, skip: int = 0, limit: int = 10
@@ -31,12 +30,11 @@ class MongoManager:
         user = await self.check_user(user_id)
         if not user:
             raise ValueError("User does not exists")
-        cursor = self.notifications.find({"user_id": user_id})
+        notifs = await self.notifications.find_one({"user_id": user_id})
         new = 0
         all = 0
         all_required = []
-        for entry in await cursor.to_list(length=100):
-            entry.pop('_id')
+        for entry in notifs["notifications"]:
             if entry['is_new']:
                 new += 1
             all += 1
@@ -75,12 +73,14 @@ class MongoManager:
             "id": str(uuid4()),
             "timestamp": time.time(),
             "is_new": True,
-            "user_id": user_id,
             "key": key,
             "target_id": target_id,
             "data": data
         }
-        await self.notifications.insert_one(notif)
+        await self.notifications.update_one(
+            {"user_id": user_id},
+            {"$addToSet": {"notifications": notif}}
+            )
 
     async def create_user(self, user_id: str, email: str) -> None:
         """_summary_
@@ -93,13 +93,12 @@ class MongoManager:
             ValueError: If user exists in db
         """
         user = await self.check_user(user_id)
-        print(user)
         if user:
-            print(1)
             raise ValueError("User is already exists")
-        await self.users.insert_one({
+        await self.notifications.insert_one({
             "user_id": user_id,
-            "email": email
+            "email": email,
+            "notifications": list()
         })
 
     async def check_user(self, user_id: str) -> bool:
@@ -111,7 +110,7 @@ class MongoManager:
         Returns:
             bool: True if exists else False
         """
-        user = await self.users.find_one({"user_id": user_id})
+        user = await self.notifications.find_one({"user_id": user_id})
         return True if user else False
 
     async def check_notification(
@@ -128,7 +127,7 @@ class MongoManager:
         """
         notification = await self.notifications.find_one({
             "user_id": user_id,
-            'notification_id': notification_id
+            'id': notification_id
             })
         return 1 if notification else 0
 
@@ -143,11 +142,16 @@ class MongoManager:
             ValueError: If notification does not exists
         """
         user = await self.check_user(user_id)
-        notification = await self.check_notification(notification_id, user_id)
-        if user and notification:
-            await self.notifications.update_one(
-                {"user_id": user_id, "id": notification_id},  # noqa 501
-                {"$set": {"is_new": False}}
+        if user:
+            user_all = await self.notifications.find_one(
+                {"user_id": user_id, "notifications.id": notification_id}
+            )
+            for notif in user_all['notifications']:
+                if notif["id"] == notification_id:
+                    notif["is_new"] = False
+            await self.notifications.replace_one(
+                {'user_id': user_id},
+                user_all
             )
         else:
             raise ValueError("Notification does not exists")

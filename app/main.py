@@ -89,7 +89,6 @@ async def get_listing(user_id: str, skip: int = 0, limit: int = 10) -> dict:
 
 @app.post(
     '/read',
-    response_model=Response,
     tags=['notification']
 )
 async def read_message(body: ReadRequest) -> dict:
@@ -103,7 +102,7 @@ async def read_message(body: ReadRequest) -> dict:
     """
     body = body.dict()
     try:
-        await mongo.update(str(body["user"]), str(body["notification_id"]))
+        await mongo.update(str(body["user_id"]), body["notification_id"])
     except ValueError as e:
-        return {"success": False, "error": e}
-    return {"success": True}
+        return {"success": False, "error": str(e)}
+    return {"success": True, "error": None}
